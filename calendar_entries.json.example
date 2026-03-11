@@ -1,0 +1,48 @@
+{
+  "groups": {
+    "default": {
+      "description": "Most CUNY schools",
+      "iz_codes": [
+        "01CUNY_BB", "01CUNY_BC", "01CUNY_BM", "01CUNY_BX",
+        "01CUNY_CC", "01CUNY_SI", "01CUNY_GJ", "01CUNY_GC",
+        "01CUNY_CL", "01CUNY_HO", "01CUNY_HC", "01CUNY_JJ",
+        "01CUNY_LE", "01CUNY_ME", "01CUNY_NY", "01CUNY_QC",
+        "01CUNY_QB", "01CUNY_YC"
+      ]
+    },
+    "alt_calendar": {
+      "description": "Guttman, Kingsborough, LaGuardia",
+      "iz_codes": ["01CUNY_NC", "01CUNY_KB", "01CUNY_LG"]
+    }
+  },
+  "exceptions": [
+    {
+      "desc": "Independence Day 2026",
+      "from_date": "2026-07-04",
+      "to_date": "2026-07-04",
+      "status": "CLOSED",
+      "applies_to": "all"
+    },
+    {
+      "desc": "Thanksgiving 2026",
+      "from_date": "2026-11-26",
+      "to_date": "2026-11-27",
+      "status": "CLOSED",
+      "applies_to": "all"
+    }
+  ],
+  "events": [
+    {
+      "desc": "End of Spring Semester 2026",
+      "from_date": "2026-06-16",
+      "to_date": "2026-06-16",
+      "applies_to": "default"
+    },
+    {
+      "desc": "End of Spring Semester 2026",
+      "from_date": "2026-06-10",
+      "to_date": "2026-06-10",
+      "applies_to": "alt_calendar"
+    }
+  ]
+}

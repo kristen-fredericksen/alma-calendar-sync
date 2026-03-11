@@ -1,0 +1,22 @@
+# API keys
+api_keys.csv
+
+# Calendar config (contains your actual dates)
+calendar_entries.json
+
+# Data and backups
+data/
+
+# Python
+__pycache__/
+venv/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Claude
+CLAUDE.md
