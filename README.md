@@ -154,10 +154,3 @@ Anything that doesn't match either rule is left alone (campus-managed entries, o
 Each IZ needs an API key with: **Configuration - Production Read/Write**
 
 Generate keys at: https://developers.exlibrisgroup.com/
-
-### Naming Convention
-
-Use this naming convention for every key in the Developer Network:
-
-- **Name:** `XX Fredericksen Calendar` (where XX is the 2-letter campus code, e.g., `QC Fredericksen Calendar`)
-- **Description:** `Manage Alma calendar events and exceptions at the institution level`
