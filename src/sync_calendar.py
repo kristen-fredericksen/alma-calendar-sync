@@ -510,7 +510,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--iz", type=str, default=None,
-        help="Process only these IZ codes, comma-separated (e.g., 01CUNY_QC or 01CUNY_KB,01CUNY_LG,01CUNY_NC). Default: all IZs in api_keys.csv."
+        help="Process only these IZ codes, comma-separated "
+        "(e.g., 01CUNY_QC or 01CUNY_KB,01CUNY_LG,01CUNY_NC). "
+        "Default: all IZs in api_keys.csv.",
     )
     parser.add_argument(
         "--config", type=str, default="calendar_entries.json",

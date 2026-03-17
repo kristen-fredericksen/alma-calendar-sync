@@ -1,1 +1,6 @@
 requests
+
+# Dev
+mypy
+ruff
+types-requests
