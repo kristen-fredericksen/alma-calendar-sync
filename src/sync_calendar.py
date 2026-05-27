@@ -62,6 +62,7 @@ def load_calendar_config(config_file: Path) -> dict:
     """Load the calendar entries config file.
 
     Returns the parsed JSON with 'groups', 'exceptions', and 'events' keys.
+    The optional 'retired_entries' key defaults to an empty list if missing.
     """
     with open(config_file) as f:
         config = json.load(f)
@@ -71,6 +72,9 @@ def load_calendar_config(config_file: Path) -> dict:
         if key not in config:
             print(f"Error: config file missing required key '{key}'")
             sys.exit(1)
+
+    # Optional: retired_entries (past entries to clean up without re-adding)
+    config.setdefault("retired_entries", [])
 
     return config
 
@@ -277,19 +281,45 @@ def dates_overlap(from1: str, to1: str, from2: str, to2: str) -> bool:
     return d_from1 <= d_to2 and d_from2 <= d_to1
 
 
+def matches_retired(existing_entry: dict, retired_entries: list[dict]) -> bool:
+    """Check whether an existing entry exactly matches a retired entry.
+
+    Retired-entry matching is strict: description AND from_date AND to_date must
+    all match exactly. This is the safety net so we don't accidentally remove
+    a campus-created entry that happens to share a description with something
+    we previously pushed.
+    """
+    existing_desc = existing_entry.get("desc", "")
+    existing_from = existing_entry.get("from_date", "").rstrip("Z")
+    existing_to = existing_entry.get("to_date", existing_from).rstrip("Z")
+
+    for retired in retired_entries:
+        if retired["desc"] != existing_desc:
+            continue
+        if retired["from_date"] != existing_from:
+            continue
+        if retired.get("to_date", retired["from_date"]) != existing_to:
+            continue
+        return True
+    return False
+
+
 def should_remove(existing_entry: dict, config_entries: list[dict],
-                  all_config_descs: set[str]) -> bool:
+                  all_config_descs: set[str],
+                  retired_entries: list[dict]) -> bool:
     """Decide whether an existing calendar entry should be removed.
 
     An entry is removed if it matches by:
-    1. Description match — the existing entry has the same description as ANY config
-       entry across ALL groups (not just this IZ's entries). This catches orphaned
-       entries from other groups (e.g., "End of Enhanced Semester Due Date" in a
-       default-group school).
-    2. Date overlap — the existing entry's date range overlaps with a config entry
-       that applies to this IZ.
+    1. Description match — the existing entry has the same description as ANY
+       active config entry across ALL groups (not just this IZ's entries). This
+       catches orphaned entries from other groups (e.g., "End of Enhanced
+       Semester Due Date" in a default-group school).
+    2. Date overlap — the existing entry's date range overlaps with a config
+       entry that applies to this IZ.
+    3. Retired-entry exact match — desc + from_date + to_date all match a
+       retired entry. Strict match so we don't touch unrelated campus entries.
 
-    This two-pronged approach handles:
+    This two-pronged active-match approach handles:
     - Same name, different date (e.g., moved semester end) → caught by description
     - Same date, different name → caught by date overlap
     - Orphaned entries from wrong group → caught by description
@@ -299,11 +329,11 @@ def should_remove(existing_entry: dict, config_entries: list[dict],
     # Events may not have to_date; treat as same-day if missing
     existing_to = existing_entry.get("to_date", existing_from)
 
-    # Match by description against ALL config entries (all groups)
+    # Match by description against ALL active config entries (all groups)
     if existing_desc and existing_desc in all_config_descs:
         return True
 
-    # Match by date overlap against this IZ's config entries
+    # Match by date overlap against this IZ's active config entries
     if existing_from:
         for config_entry in config_entries:
             config_from = config_entry["from_date"]
@@ -311,6 +341,10 @@ def should_remove(existing_entry: dict, config_entries: list[dict],
             if dates_overlap(existing_from, existing_to,
                              config_from, config_to):
                 return True
+
+    # Strict match against retired entries (one-time cleanup, no re-add)
+    if matches_retired(existing_entry, retired_entries):
+        return True
 
     return False
 
@@ -356,7 +390,8 @@ def config_entry_to_alma(entry: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def sync_iz(iz: str, apikey: str, config_entries: list[dict],
-            all_config_descs: set[str], apply: bool) -> tuple[bool, bool]:
+            all_config_descs: set[str], retired_entries: list[dict],
+            apply: bool) -> tuple[bool, bool]:
     """Sync calendar entries for one IZ.
 
     Args:
@@ -365,6 +400,7 @@ def sync_iz(iz: str, apikey: str, config_entries: list[dict],
         config_entries: List of config entries that apply to this IZ.
         all_config_descs: Set of ALL config entry descriptions across all groups,
             used to catch orphaned entries from other groups.
+        retired_entries: List of past entries to clean up (desc+dates exact match).
         apply: If True, actually PUT changes. If False, dry-run only.
 
     Returns:
@@ -397,7 +433,8 @@ def sync_iz(iz: str, apikey: str, config_entries: list[dict],
     remove_entries: list[dict] = []
 
     for entry in other_entries:
-        if should_remove(entry, config_entries, all_config_descs):
+        if should_remove(entry, config_entries, all_config_descs,
+                         retired_entries):
             remove_entries.append(entry)
         else:
             keep_entries.append(entry)
@@ -572,6 +609,8 @@ def main() -> None:
     print(f"Institutions: {len(institutions)}")
     print(f"Exceptions defined: {len(config['exceptions'])}")
     print(f"Events defined: {len(config['events'])}")
+    if config["retired_entries"]:
+        print(f"Retired entries to clean up: {len(config['retired_entries'])}")
     print()
 
     if not args.apply:
@@ -609,7 +648,7 @@ def main() -> None:
             continue
 
         had_changes, had_error = sync_iz(iz, apikey, entries, all_config_descs,
-                                         args.apply)
+                                         config["retired_entries"], args.apply)
 
         if had_changes:
             change_count += 1

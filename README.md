@@ -129,18 +129,35 @@ Define which IZs belong to which calendar group. An IZ can be in one group.
 
 Events are informational dates that appear on the calendar but don't affect open/closed status.
 
+### Retired entries (one-time cleanup)
+
+Use `retired_entries` for past entries you previously pushed but no longer want anywhere. The script removes them but never re-adds them.
+
+```json
+"retired_entries": [
+  {
+    "desc": "Memorial Day 2026",
+    "from_date": "2026-05-25",
+    "to_date": "2026-05-25"
+  }
+]
+```
+
+Matching is strict: `desc` AND `from_date` AND `to_date` must all match exactly. This protects any campus-created entries that happen to share a description. Once every IZ is cleaned up, you can delete the entry from this section.
+
 ## How Matching Works
 
-When the script decides which existing entries to remove, it uses two rules:
+When the script decides which existing entries to remove, it uses three rules:
 
-1. **Date overlap** — if an existing entry's dates overlap with any config entry's dates, it gets removed
-2. **Description match** — if an existing entry has the same description as any config entry, it gets removed
+1. **Date overlap** — if an existing entry's dates overlap with any active config entry's dates, it gets removed
+2. **Description match** — if an existing entry has the same description as any active config entry, it gets removed
+3. **Retired exact match** — if `desc` + `from_date` + `to_date` all match a `retired_entries` row, it gets removed (and not re-added)
 
 This handles both cases:
 - You change the name of a holiday → the old entry is caught by date overlap
 - You move a date (e.g., semester end June 15 → June 16) → the old entry is caught by description match
 
-Anything that doesn't match either rule is left alone (campus-managed entries, opening hours).
+Anything that doesn't match any rule is left alone (campus-managed entries, opening hours).
 
 ## Safety Features
 

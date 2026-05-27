@@ -44,5 +44,12 @@
       "to_date": "2026-06-10",
       "applies_to": "alt_calendar"
     }
+  ],
+  "retired_entries": [
+    {
+      "desc": "Memorial Day 2025",
+      "from_date": "2025-05-26",
+      "to_date": "2025-05-26"
+    }
   ]
 }
