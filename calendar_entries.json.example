@@ -17,14 +17,14 @@
   },
   "exceptions": [
     {
-      "desc": "Independence Day 2026",
-      "from_date": "2026-07-04",
-      "to_date": "2026-07-04",
+      "desc": "Independence Day",
+      "from_date": "2026-07-03",
+      "to_date": "2026-07-03",
       "status": "CLOSED",
       "applies_to": "all"
     },
     {
-      "desc": "Thanksgiving 2026",
+      "desc": "Thanksgiving",
       "from_date": "2026-11-26",
       "to_date": "2026-11-27",
       "status": "CLOSED",
@@ -33,13 +33,13 @@
   ],
   "events": [
     {
-      "desc": "End of Spring Semester 2026",
+      "desc": "End of Spring Semester",
       "from_date": "2026-06-16",
       "to_date": "2026-06-16",
       "applies_to": "default"
     },
     {
-      "desc": "End of Spring Semester 2026",
+      "desc": "End of Spring Semester",
       "from_date": "2026-06-10",
       "to_date": "2026-06-10",
       "applies_to": "alt_calendar"

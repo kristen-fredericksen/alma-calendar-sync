@@ -102,9 +102,9 @@ Define which IZs belong to which calendar group. An IZ can be in one group.
 ```json
 "exceptions": [
   {
-    "desc": "Independence Day 2026",
-    "from_date": "2026-07-04",
-    "to_date": "2026-07-04",
+    "desc": "Independence Day",
+    "from_date": "2026-07-03",
+    "to_date": "2026-07-03",
     "status": "CLOSED",
     "applies_to": "all"
   }
@@ -113,13 +113,14 @@ Define which IZs belong to which calendar group. An IZ can be in one group.
 
 - `applies_to`: `"all"` for every IZ, or a group name like `"default"` or `"alt_calendar"`
 - `status`: Always `"CLOSED"` for full-day closures
+- **Don't put the year in `desc`.** The date is already shown alongside the description in both Alma and Primo VE, so `"Labor Day"` reads the same as `"Labor Day 2026"`. Yearless names also help the script auto-sweep last year's entries via description match when you roll to a new academic year.
 
 ### Events (semester dates)
 
 ```json
 "events": [
   {
-    "desc": "End of Spring Semester 2026",
+    "desc": "End of Spring Semester",
     "from_date": "2026-06-16",
     "to_date": "2026-06-16",
     "applies_to": "default"
