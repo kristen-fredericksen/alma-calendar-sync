@@ -149,15 +149,15 @@ Matching is strict: `desc` AND `from_date` AND `to_date` must all match exactly.
 
 When the script decides which existing entries to remove, it uses three rules:
 
-1. **Date overlap** — if an existing entry's dates overlap with any active config entry's dates, it gets removed
-2. **Description match** — if an existing entry has the same description as any active config entry, it gets removed
+1. **Description match** — if an existing entry has the same description as any active config entry, it gets removed
+2. **Exact date match** — if an existing entry's date range is identical to an active config entry's date range, it gets removed
 3. **Retired exact match** — if `desc` + `from_date` + `to_date` all match a `retired_entries` row, it gets removed (and not re-added)
 
 This handles both cases:
-- You change the name of a holiday → the old entry is caught by date overlap
+- You change the name of a holiday but not the date → the old entry is caught by exact date match
 - You move a date (e.g., semester end June 15 → June 16) → the old entry is caught by description match
 
-Anything that doesn't match any rule is left alone (campus-managed entries, opening hours).
+Anything that doesn't match any rule is left alone (campus-managed entries, opening hours). Match rule #2 is intentionally exact (not overlap), so long-running campus entries like "Summer Hours" (6/1–8/19) aren't swept just because a single-day config entry falls inside them.
 
 ## Safety Features
 

@@ -268,17 +268,17 @@ def parse_date(date_str: str) -> date:
     return date.fromisoformat(clean)
 
 
-def dates_overlap(from1: str, to1: str, from2: str, to2: str) -> bool:
-    """Check if two date ranges overlap.
+def dates_match_exactly(from1: str, to1: str, from2: str, to2: str) -> bool:
+    """Check whether two date ranges are identical.
 
-    Two ranges [from1, to1] and [from2, to2] overlap if
-    from1 <= to2 AND from2 <= to1.
+    Used to catch "same date, renamed entry" cases (e.g., a config entry that
+    used to be called "End of Spring Session I" and is now called "End of
+    Enhanced Semester Due Date" on the same date). Exact rather than overlap,
+    so we don't accidentally sweep long-running campus entries like "Summer
+    Hours" (6/1–8/19) just because a single-day config entry falls inside them.
     """
-    d_from1 = parse_date(from1)
-    d_to1 = parse_date(to1)
-    d_from2 = parse_date(from2)
-    d_to2 = parse_date(to2)
-    return d_from1 <= d_to2 and d_from2 <= d_to1
+    return (parse_date(from1) == parse_date(from2)
+            and parse_date(to1) == parse_date(to2))
 
 
 def matches_retired(existing_entry: dict, retired_entries: list[dict]) -> bool:
@@ -314,15 +314,12 @@ def should_remove(existing_entry: dict, config_entries: list[dict],
        active config entry across ALL groups (not just this IZ's entries). This
        catches orphaned entries from other groups (e.g., "End of Enhanced
        Semester Due Date" in a default-group school).
-    2. Date overlap — the existing entry's date range overlaps with a config
-       entry that applies to this IZ.
+    2. Exact date match — the existing entry's date range is identical to a
+       config entry that applies to this IZ. Catches "same date, renamed
+       entry" cases without sweeping long-running campus entries like Summer
+       Hours (6/1–8/19) that happen to contain one of our narrow config dates.
     3. Retired-entry exact match — desc + from_date + to_date all match a
        retired entry. Strict match so we don't touch unrelated campus entries.
-
-    This two-pronged active-match approach handles:
-    - Same name, different date (e.g., moved semester end) → caught by description
-    - Same date, different name → caught by date overlap
-    - Orphaned entries from wrong group → caught by description
     """
     existing_desc = existing_entry.get("desc", "")
     existing_from = existing_entry.get("from_date", "")
@@ -333,13 +330,13 @@ def should_remove(existing_entry: dict, config_entries: list[dict],
     if existing_desc and existing_desc in all_config_descs:
         return True
 
-    # Match by date overlap against this IZ's active config entries
+    # Match by exact date range against this IZ's active config entries
     if existing_from:
         for config_entry in config_entries:
             config_from = config_entry["from_date"]
             config_to = config_entry.get("to_date", config_from)
-            if dates_overlap(existing_from, existing_to,
-                             config_from, config_to):
+            if dates_match_exactly(existing_from, existing_to,
+                                   config_from, config_to):
                 return True
 
     # Strict match against retired entries (one-time cleanup, no re-add)
